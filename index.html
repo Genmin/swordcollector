@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sword Collector</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <h1>Sword Collector</h1>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+    </div>
+
+    <div id="toolbar">
+        <div class="pfp-section">
+            <h3>Active Character</h3>
+            <div id="player-pfp" class="pfp-display"></div>
+            <div id="character-selector">
+                <label for="char-select">Control:</label>
+                <select id="char-select">
+                    <option value="ray">Ray</option>
+                    <option value="amara">Amara</option>
+                    <option value="ruby">Ruby</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="inventory">
+            <div id="collected-swords">
+                <h3>Weapons</h3>
+                <div id="swords-display"></div>
+            </div>
+            <div id="treasure">
+                <h3>Treasure</h3>
+                <div id="treasure-display"></div>
+            </div>
+        </div>
+
+        <div class="pfp-section">
+            <h3>Talking To</h3>
+            <div id="npc-pfp" class="pfp-display">?</div>
+            <div id="npc-dialogue"></div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
