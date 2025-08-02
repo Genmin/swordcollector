@@ -94,12 +94,44 @@ const EMOJIS = {
         candle: '🕯️',
         chain: '⛓️',
         gate: '🚪',
-        // Weather effects
-        rain: '🌧️',
-        snow: '❄️',
-        lightning: '⚡',
-        fog: '🌫️',
-        rainbow: '🌈'
+        bloodPool: '🩸',
+        soulWell: '🕳️',
+        cursedTree: '🌚',
+        demonThrone: '👹',
+        // House interiors
+        couch: '🛋️',
+        tv: '📺',
+        bed: '🛏️',
+        toilet: '🚽',
+        bathtub: '🛁',
+        stove: '🔥',
+        fridge: '🧊',
+        plant: '🪴',
+        mirror: '🪞',
+        window: '🪟',
+        door: '🚪',
+        painting: '🖼️',
+        clock: '🕰️',
+        lamp: '💡',
+        rug: '🟫',
+        // Vibey locations
+        mushroom: '🍄',
+        flower: '🌸',
+        butterfly: '🦋',
+        rainbow_road: '🌈',
+        disco_ball: '🪩',
+        neon_sign: '💜',
+        ferris_wheel: '🎡',
+        carousel: '🎠',
+        fountain: '⛲',
+        statue: '🗿',
+        totem: '🪬',
+        altar: '🛕',
+        crystal_cave: '💎',
+        glowshroom: '🍄',
+        aurora: '🌌',
+        vortex: '🌀',
+        dreamGate: '✨'
     },
     collectibles: {
         weapons: ['⚔️', '🗡️', '🔪', '🤺', '🪓', '🏹'],
@@ -203,11 +235,18 @@ const EMOJIS = {
         cerberus: '🐕'
     },
     pets: {
-        cat: { emoji: '🐈', name: 'Whiskers', bonus: 'luck' },
-        dog: { emoji: '🐕', name: 'Buddy', bonus: 'loyalty' },
-        bird: { emoji: '🦜', name: 'Polly', bonus: 'vision' },
-        fairy: { emoji: '🧚', name: 'Twinkle', bonus: 'magic' },
-        dragon_baby: { emoji: '🐉', name: 'Spark', bonus: 'fire' }
+        cat: { emoji: '🐈', name: 'Whiskers', bonus: 'luck', followOffset: {x: -1, y: 0} },
+        dog: { emoji: '🐕', name: 'Buddy', bonus: 'loyalty', followOffset: {x: 1, y: 0} },
+        bird: { emoji: '🦜', name: 'Polly', bonus: 'vision', followOffset: {x: 0, y: -1} },
+        fairy: { emoji: '🧚', name: 'Twinkle', bonus: 'magic', followOffset: {x: -1, y: -1} },
+        dragon_baby: { emoji: '🐉', name: 'Spark', bonus: 'fire', followOffset: {x: 1, y: 1} },
+        ghost_cat: { emoji: '👻', name: 'Spooky', bonus: 'phase', followOffset: {x: 0, y: 1} },
+        mushroom: { emoji: '🍄', name: 'Fungi', bonus: 'poison_resist', followOffset: {x: -1, y: 1} },
+        star: { emoji: '⭐', name: 'Stella', bonus: 'light', followOffset: {x: 1, y: -1} },
+        flame: { emoji: '🔥', name: 'Ember', bonus: 'burn', followOffset: {x: 0, y: 0} },
+        crystal: { emoji: '💎', name: 'Prism', bonus: 'shield', followOffset: {x: -0.5, y: -0.5} },
+        butterfly: { emoji: '🦋', name: 'Flutter', bonus: 'speed', followOffset: {x: 0.5, y: -0.5} },
+        skull: { emoji: '💀', name: 'Bones', bonus: 'undead', followOffset: {x: -0.5, y: 0.5} }
     },
     underworldNpcs: {
         reaper: { emoji: '💀', dialogue: 'Welcome to the realm of shadows...' },
@@ -224,7 +263,15 @@ const EMOJIS = {
         city: {emoji: '🏙️', name: 'City'},
         asia: {emoji: '🏯', name: 'Asia'},
         sf: {emoji: '🌉', name: 'San Francisco'},
-        school: {emoji: '🏫', name: 'School'}
+        school: {emoji: '🏫', name: 'School'},
+        house1: {emoji: '🏠', name: 'Cozy Cottage'},
+        house2: {emoji: '🏚️', name: 'Haunted Manor'},
+        house3: {emoji: '🏡', name: 'Garden Home'},
+        mushroom_kingdom: {emoji: '🍄', name: 'Mushroom Kingdom'},
+        crystal_caves: {emoji: '💎', name: 'Crystal Caves'},
+        dreamscape: {emoji: '🌈', name: 'Dreamscape'},
+        carnival: {emoji: '🎪', name: 'Eternal Carnival'},
+        void: {emoji: '⚫', name: 'The Void'}
     }
 };
 
@@ -249,8 +296,9 @@ let combatMessage = '';
 let combatMessageTimer = null;
 let lastKeyPress = 0;
 const KEY_DEBOUNCE = 100; // Minimum ms between key presses
-let currentPet = null;
-let weatherEffect = null;
+let currentPets = [];
+let maxPets = 3;
+let petPositions = [];
 let timeOfDay = 'day'; // day, night, twilight
 let secretsFound = 0;
 let bossesDefeated = [];
@@ -331,6 +379,27 @@ function generateLevel(levelType) {
             emoji: '🧚',
             dialogue: 'You found me! Take this companion as a reward!',
             givePet: 'fairy'
+        });
+        
+        // Wild pets that can be befriended
+        entities.push({
+            id: 'wild-cat',
+            type: 'wild_pet',
+            petType: 'cat',
+            x: Math.floor(Math.random() * MAP_WIDTH),
+            y: Math.floor(Math.random() * MAP_HEIGHT),
+            emoji: '🐈',
+            dialogue: 'Meow! (Feed me fish to befriend me!)'
+        });
+        
+        entities.push({
+            id: 'wild-butterfly',
+            type: 'wild_pet',
+            petType: 'butterfly',
+            x: Math.floor(Math.random() * MAP_WIDTH),
+            y: Math.floor(Math.random() * MAP_HEIGHT),
+            emoji: '🦋',
+            dialogue: 'Flutter flutter... (I love flowers!)'
         });
         
         // Place portals
@@ -563,45 +632,79 @@ function generateLevel(levelType) {
         map[MAP_HEIGHT - 2][MAP_WIDTH/2] = { type: 'stairUp', emoji: EMOJIS.terrain.stairUp, target: { level: 'overworld', x: 5, y: 5 } };
         
     } else if (levelType === 'underworld') {
-        // Epic Underworld level
+        // Epic Underworld level - even more insane!
         timeOfDay = 'night';
         
-        // Fill with darkness and bones
+        // Fill with cursed ground
         for (let y = 0; y < MAP_HEIGHT; y++) {
             for (let x = 0; x < MAP_WIDTH; x++) {
-                if (Math.random() < 0.1) {
+                const rand = Math.random();
+                if (rand < 0.08) {
                     map[y][x] = { type: 'bones', emoji: EMOJIS.terrain.bones };
-                } else if (Math.random() < 0.05) {
+                } else if (rand < 0.12) {
+                    map[y][x] = { type: 'skull', emoji: EMOJIS.terrain.skull };
+                } else if (rand < 0.15) {
                     map[y][x] = { type: 'tombstone', emoji: EMOJIS.terrain.tombstone };
+                } else if (rand < 0.17) {
+                    map[y][x] = { type: 'cursedTree', emoji: EMOJIS.terrain.cursedTree };
                 }
             }
         }
         
-        // River of lava through the middle
+        // River of lava with multiple branches
         for (let x = 0; x < MAP_WIDTH; x++) {
             const yBase = Math.floor(MAP_HEIGHT / 2);
-            const yWave = Math.sin(x * 0.5) * 2;
-            for (let dy = -1; dy <= 1; dy++) {
+            const yWave = Math.sin(x * 0.3) * 3;
+            for (let dy = -2; dy <= 2; dy++) {
                 const y = Math.floor(yBase + yWave + dy);
                 if (y >= 0 && y < MAP_HEIGHT) {
-                    map[y][x] = { type: 'lava', emoji: EMOJIS.terrain.lava };
+                    if (Math.abs(dy) <= 1) {
+                        map[y][x] = { type: 'lava', emoji: EMOJIS.terrain.lava };
+                    } else if (Math.random() < 0.5) {
+                        map[y][x] = { type: 'fire', emoji: EMOJIS.terrain.fire };
+                    }
                 }
             }
         }
         
-        // Bridge of bones across lava
-        const bridgeX = Math.floor(MAP_WIDTH / 2);
-        for (let y = 0; y < MAP_HEIGHT; y++) {
-            if (map[y][bridgeX] && map[y][bridgeX].type === 'lava') {
-                map[y][bridgeX] = { type: 'bridge', emoji: '🦴' };
+        // Multiple bridges of bones
+        for (let bridgeX = 3; bridgeX < MAP_WIDTH; bridgeX += 6) {
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                if (map[y][bridgeX] && map[y][bridgeX].type === 'lava') {
+                    map[y][bridgeX] = { type: 'bridge', emoji: '🦴' };
+                }
             }
         }
         
-        // Demon throne room (boss area)
-        for (let y = 2; y < 6; y++) {
-            for (let x = MAP_WIDTH - 8; x < MAP_WIDTH - 2; x++) {
-                if (y === 2 || y === 5 || x === MAP_WIDTH - 8 || x === MAP_WIDTH - 3) {
+        // Blood pools of power
+        for (let i = 0; i < 3; i++) {
+            const poolX = Math.floor(Math.random() * (MAP_WIDTH - 4)) + 2;
+            const poolY = Math.floor(Math.random() * (MAP_HEIGHT - 4)) + 2;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (Math.abs(dx) + Math.abs(dy) <= 1) {
+                        map[poolY + dy][poolX + dx] = { type: 'bloodPool', emoji: EMOJIS.terrain.bloodPool };
+                    }
+                }
+            }
+        }
+        
+        // Soul wells (mysterious portals)
+        for (let i = 0; i < 2; i++) {
+            let x = Math.floor(Math.random() * MAP_WIDTH);
+            let y = Math.floor(Math.random() * MAP_HEIGHT);
+            if (!map[y][x] || map[y][x].type === 'bones') {
+                map[y][x] = { type: 'soulWell', emoji: EMOJIS.terrain.soulWell };
+            }
+        }
+        
+        // Demon throne room (expanded boss area)
+        for (let y = 1; y < 7; y++) {
+            for (let x = MAP_WIDTH - 10; x < MAP_WIDTH - 1; x++) {
+                if (y === 1 || y === 6 || x === MAP_WIDTH - 10 || x === MAP_WIDTH - 2) {
                     map[y][x] = { type: 'fire', emoji: EMOJIS.terrain.fire };
+                } else if (y === 4 && x === MAP_WIDTH - 6) {
+                    map[y][x] = { type: 'demonThrone', emoji: EMOJIS.terrain.demonThrone };
                 } else {
                     map[y][x] = null;
                 }
@@ -620,26 +723,33 @@ function generateLevel(levelType) {
         }
         map[MAP_HEIGHT - 3][2] = { type: 'gate', emoji: EMOJIS.terrain.gate, locked: true };
         
-        // Crystal formations (magical areas)
-        for (let i = 0; i < 5; i++) {
-            let x = Math.floor(Math.random() * MAP_WIDTH);
-            let y = Math.floor(Math.random() * MAP_HEIGHT);
-            if (!map[y][x] || map[y][x].type === 'bones') {
-                map[y][x] = { type: 'crystal', emoji: EMOJIS.terrain.crystal };
+        // Crystal formations create protective circles
+        for (let i = 0; i < 3; i++) {
+            const centerX = Math.floor(Math.random() * (MAP_WIDTH - 6)) + 3;
+            const centerY = Math.floor(Math.random() * (MAP_HEIGHT - 6)) + 3;
+            for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+                const x = Math.floor(centerX + Math.cos(angle) * 2);
+                const y = Math.floor(centerY + Math.sin(angle) * 2);
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT && !map[y][x]) {
+                    map[y][x] = { type: 'crystal', emoji: EMOJIS.terrain.crystal };
+                }
             }
         }
         
-        // Place mystical candles for atmosphere
-        for (let i = 0; i < 8; i++) {
-            let x = Math.floor(Math.random() * MAP_WIDTH);
-            let y = Math.floor(Math.random() * MAP_HEIGHT);
-            if (!map[y][x]) {
+        // Mystical candles in pentagram formation
+        const pentX = Math.floor(MAP_WIDTH / 3);
+        const pentY = Math.floor(MAP_HEIGHT / 3);
+        for (let i = 0; i < 5; i++) {
+            const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+            const x = Math.floor(pentX + Math.cos(angle) * 3);
+            const y = Math.floor(pentY + Math.sin(angle) * 3);
+            if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT && !map[y][x]) {
                 map[y][x] = { type: 'candle', emoji: EMOJIS.terrain.candle };
             }
         }
         
-        // Place legendary weapon (Mjolnir) in throne room
-        map[4][MAP_WIDTH - 5] = { 
+        // Place legendary weapon (Mjolnir) on throne
+        map[4][MAP_WIDTH - 6] = { 
             type: 'legendary', 
             emoji: EMOJIS.collectibles.legendaryWeapons.mjolnir.emoji,
             weapon: 'mjolnir'
@@ -649,30 +759,376 @@ function generateLevel(levelType) {
         placeItems(map, 'ancient_rune', EMOJIS.collectibles.ancient_rune, 3);
         placeItems(map, 'phoenix_feather', EMOJIS.collectibles.phoenix_feather, 1);
         placeItems(map, 'dragon_scale', EMOJIS.collectibles.dragon_scale, 2);
-        placeItems(map, 'key', EMOJIS.collectibles.key, 2);
+        placeItems(map, 'key', EMOJIS.collectibles.key, 3);
         placeItems(map, 'scroll', EMOJIS.collectibles.scroll, 3);
         placeItems(map, 'potion', EMOJIS.collectibles.potion, 5);
-        placeItems(map, 'diamond', EMOJIS.collectibles.diamond, 8);
+        placeItems(map, 'diamond', EMOJIS.collectibles.diamond, 10);
+        placeItems(map, 'crystal_ball', EMOJIS.collectibles.crystal_ball, 2);
+        placeItems(map, 'magic_lamp', EMOJIS.collectibles.magic_lamp, 1);
         
         // Underworld NPCs
-        entities = placeEntities(map, 'underworldNpc', Object.keys(EMOJIS.underworldNpcs), 4);
+        entities = placeEntities(map, 'underworldNpc', Object.keys(EMOJIS.underworldNpcs), 5);
+        
+        // Ghost pet that can be befriended
+        entities.push({
+            id: 'ghost-pet',
+            type: 'wild_pet',
+            petType: 'ghost_cat',
+            x: pentX,
+            y: pentY,
+            emoji: '👻',
+            dialogue: 'Boo... I am lonely in this realm... Show me kindness?'
+        });
         
         // Regular enemies
-        placeEnemiesSafely(map, entities, ['skeleton', 'wraith', 'vampire', 'zombie'], 8);
+        placeEnemiesSafely(map, entities, ['skeleton', 'wraith', 'vampire', 'zombie', 'demon'], 12);
         
         // Boss: Cerberus guards the exit
         entities.push({ 
             id: 'cerberus-boss', 
             type: 'cerberus', 
-            x: MAP_WIDTH - 5, 
+            x: MAP_WIDTH - 6, 
             y: 4,
-            health: 20,
+            health: 25,
             isBoss: true,
-            drops: ['crown', 'diamond', 'diamond', 'diamond']
+            drops: ['crown', 'diamond', 'diamond', 'diamond', 'unicorn_horn']
         });
         
         // Exit portal (behind boss)
         map[1][MAP_WIDTH - 2] = { type: 'portal', emoji: EMOJIS.terrain.portal, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'house1') {
+        // Cozy Cottage
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    map[y][x] = { type: 'wall', emoji: EMOJIS.terrain.wall };
+                }
+            }
+        }
+        
+        // Living room
+        map[3][3] = { type: 'couch', emoji: EMOJIS.terrain.couch };
+        map[3][4] = { type: 'couch', emoji: EMOJIS.terrain.couch };
+        map[3][6] = { type: 'tv', emoji: EMOJIS.terrain.tv };
+        map[5][5] = { type: 'rug', emoji: EMOJIS.terrain.rug };
+        
+        // Kitchen
+        map[8][2] = { type: 'stove', emoji: EMOJIS.terrain.stove };
+        map[8][3] = { type: 'fridge', emoji: EMOJIS.terrain.fridge };
+        
+        // Bedroom
+        map[2][MAP_WIDTH - 3] = { type: 'bed', emoji: EMOJIS.terrain.bed };
+        map[3][MAP_WIDTH - 3] = { type: 'lamp', emoji: EMOJIS.terrain.lamp };
+        
+        // Decorations
+        map[1][5] = { type: 'painting', emoji: EMOJIS.terrain.painting };
+        map[1][8] = { type: 'clock', emoji: EMOJIS.terrain.clock };
+        map[6][2] = { type: 'plant', emoji: EMOJIS.terrain.plant };
+        
+        // Collectibles
+        placeItems(map, 'coin', EMOJIS.collectibles.coin, 5);
+        placeItems(map, 'apple', EMOJIS.collectibles.apple, 3);
+        
+        // Friendly NPC
+        entities = [{ id: 'grandma', type: 'grandma', x: 5, y: 5, 
+                     emoji: '👵', dialogue: 'Welcome to my home! Have some cookies!' }];
+        
+        // Pet cat wandering around
+        entities.push({
+            id: 'house-cat',
+            type: 'wild_pet',
+            petType: 'cat',
+            x: 7,
+            y: 7,
+            emoji: '🐈',
+            dialogue: 'Purr... I live here but I could join you!'
+        });
+        
+        map[MAP_HEIGHT - 2][MAP_WIDTH/2] = { type: 'door', emoji: EMOJIS.terrain.door, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'house2') {
+        // Haunted Manor
+        timeOfDay = 'night';
+        
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    map[y][x] = { type: 'wall', emoji: '🕸️' };
+                }
+            }
+        }
+        
+        // Spooky furniture
+        map[4][4] = { type: 'couch', emoji: '🛋️' };
+        map[2][2] = { type: 'mirror', emoji: EMOJIS.terrain.mirror };
+        map[7][7] = { type: 'candle', emoji: EMOJIS.terrain.candle };
+        map[3][8] = { type: 'skull', emoji: EMOJIS.terrain.skull };
+        
+        // Hidden basement entrance
+        map[10][10] = { type: 'stairDown', emoji: '🕳️', target: { level: 'underworld', x: 2, y: 2 } };
+        
+        // Ghosts and spooky items
+        placeItems(map, 'crystal_ball', EMOJIS.collectibles.crystal_ball, 2);
+        placeItems(map, 'magic_lamp', EMOJIS.collectibles.magic_lamp, 1);
+        placeItems(map, 'ancient_rune', EMOJIS.collectibles.ancient_rune, 2);
+        
+        entities = [];
+        placeEnemiesSafely(map, entities, ['ghost', 'bat'], 5);
+        
+        // Ghost pet
+        entities.push({
+            id: 'manor-ghost',
+            type: 'wild_pet',
+            petType: 'ghost_cat',
+            x: 5,
+            y: 5,
+            emoji: '👻',
+            dialogue: 'OoOoOo... I haunt this place... but I\'m friendly!'
+        });
+        
+        map[MAP_HEIGHT - 2][1] = { type: 'door', emoji: EMOJIS.terrain.door, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'house3') {
+        // Garden Home
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    if (Math.random() < 0.3) {
+                        map[y][x] = { type: 'flower', emoji: EMOJIS.terrain.flower };
+                    } else {
+                        map[y][x] = { type: 'wall', emoji: '🌿' };
+                    }
+                }
+            }
+        }
+        
+        // Indoor garden
+        for (let i = 0; i < 10; i++) {
+            let x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+            let y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            map[y][x] = { type: 'plant', emoji: EMOJIS.terrain.plant };
+        }
+        
+        // Fountain in center
+        map[MAP_HEIGHT/2][MAP_WIDTH/2] = { type: 'fountain', emoji: EMOJIS.terrain.fountain };
+        
+        // Butterflies
+        entities = [];
+        for (let i = 0; i < 3; i++) {
+            entities.push({
+                id: `butterfly-${i}`,
+                type: 'butterfly',
+                x: Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1,
+                y: Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1,
+                emoji: EMOJIS.terrain.butterfly
+            });
+        }
+        
+        // Butterfly pet
+        entities.push({
+            id: 'garden-butterfly',
+            type: 'wild_pet',
+            petType: 'butterfly',
+            x: MAP_WIDTH/2 + 1,
+            y: MAP_HEIGHT/2,
+            emoji: '🦋',
+            dialogue: 'Flutter... I love this garden!'
+        });
+        
+        placeItems(map, 'flower', EMOJIS.terrain.flower, 5);
+        placeItems(map, 'lucky_clover', EMOJIS.collectibles.lucky_clover, 1);
+        
+        map[MAP_HEIGHT - 2][MAP_WIDTH/2] = { type: 'door', emoji: EMOJIS.terrain.door, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'mushroom_kingdom') {
+        // Mushroom Kingdom - surreal and vibey
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (Math.random() < 0.15) {
+                    map[y][x] = { type: 'mushroom', emoji: EMOJIS.terrain.mushroom };
+                } else if (Math.random() < 0.1) {
+                    map[y][x] = { type: 'glowshroom', emoji: '🍄' };
+                }
+            }
+        }
+        
+        // Giant mushroom circles
+        for (let i = 0; i < 3; i++) {
+            const centerX = Math.floor(Math.random() * (MAP_WIDTH - 6)) + 3;
+            const centerY = Math.floor(Math.random() * (MAP_HEIGHT - 6)) + 3;
+            for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 6) {
+                const x = Math.floor(centerX + Math.cos(angle) * 3);
+                const y = Math.floor(centerY + Math.sin(angle) * 3);
+                if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                    map[y][x] = { type: 'mushroom', emoji: '🍄' };
+                }
+            }
+        }
+        
+        // Mushroom pet
+        entities = [{
+            id: 'mushroom-pet',
+            type: 'wild_pet',
+            petType: 'mushroom',
+            x: MAP_WIDTH/2,
+            y: MAP_HEIGHT/2,
+            emoji: '🍄',
+            dialogue: 'Spore spore... I am one with the mycelium!'
+        }];
+        
+        placeItems(map, 'potion', EMOJIS.collectibles.potion, 8);
+        placeItems(map, 'star_fragment', EMOJIS.collectibles.star_fragment, 3);
+        
+        map[1][1] = { type: 'portal', emoji: EMOJIS.terrain.vortex, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'crystal_caves') {
+        // Crystal Caves - magical and sparkling
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if (x === 0 || x === MAP_WIDTH - 1 || y === 0 || y === MAP_HEIGHT - 1) {
+                    map[y][x] = { type: 'crystal', emoji: EMOJIS.terrain.crystal };
+                } else if (Math.random() < 0.2) {
+                    map[y][x] = { type: 'crystal', emoji: '💎' };
+                }
+            }
+        }
+        
+        // Crystal formations
+        for (let i = 0; i < 5; i++) {
+            const x = Math.floor(Math.random() * (MAP_WIDTH - 2)) + 1;
+            const y = Math.floor(Math.random() * (MAP_HEIGHT - 2)) + 1;
+            map[y][x] = { type: 'crystal_cave', emoji: EMOJIS.terrain.crystal_cave };
+        }
+        
+        // Crystal pet
+        entities = [{
+            id: 'crystal-pet',
+            type: 'wild_pet',
+            petType: 'crystal',
+            x: MAP_WIDTH/2,
+            y: MAP_HEIGHT/2,
+            emoji: '💎',
+            dialogue: 'Shimmer shimmer... I reflect your inner light!'
+        }];
+        
+        placeItems(map, 'diamond', EMOJIS.collectibles.diamond, 15);
+        placeItems(map, 'gem', EMOJIS.collectibles.gem, 5);
+        
+        map[MAP_HEIGHT - 2][MAP_WIDTH - 2] = { type: 'portal', emoji: '✨', target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'dreamscape') {
+        // Dreamscape - surreal rainbow world
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                const wave = Math.sin(x * 0.5 + y * 0.5) * 0.5 + 0.5;
+                if (wave < 0.2) {
+                    map[y][x] = { type: 'rainbow_road', emoji: EMOJIS.terrain.rainbow_road };
+                } else if (wave < 0.4) {
+                    map[y][x] = { type: 'cloud', emoji: EMOJIS.terrain.cloud };
+                } else if (wave < 0.6) {
+                    map[y][x] = { type: 'star', emoji: EMOJIS.terrain.star };
+                }
+            }
+        }
+        
+        // Aurora effects
+        for (let i = 0; i < 10; i++) {
+            let x = Math.floor(Math.random() * MAP_WIDTH);
+            let y = Math.floor(Math.random() * MAP_HEIGHT);
+            map[y][x] = { type: 'aurora', emoji: EMOJIS.terrain.aurora };
+        }
+        
+        // Dream gates
+        map[5][5] = { type: 'dreamGate', emoji: EMOJIS.terrain.dreamGate };
+        map[10][10] = { type: 'dreamGate', emoji: EMOJIS.terrain.dreamGate };
+        
+        // Star pet
+        entities = [{
+            id: 'star-pet',
+            type: 'wild_pet',
+            petType: 'star',
+            x: 7,
+            y: 7,
+            emoji: '⭐',
+            dialogue: 'Twinkle twinkle... Make a wish!'
+        }];
+        
+        placeItems(map, 'star_fragment', EMOJIS.collectibles.star_fragment, 10);
+        placeItems(map, 'unicorn_horn', EMOJIS.collectibles.unicorn_horn, 2);
+        
+        map[MAP_HEIGHT/2][1] = { type: 'portal', emoji: EMOJIS.terrain.vortex, target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'carnival') {
+        // Eternal Carnival - fun and chaotic
+        for (let y = 0; y < MAP_HEIGHT; y++) {
+            for (let x = 0; x < MAP_WIDTH; x++) {
+                if ((x + y) % 4 === 0) {
+                    map[y][x] = { type: 'neon_sign', emoji: EMOJIS.terrain.neon_sign };
+                } else if ((x + y) % 4 === 2) {
+                    map[y][x] = { type: 'disco_ball', emoji: EMOJIS.terrain.disco_ball };
+                }
+            }
+        }
+        
+        // Rides
+        map[3][3] = { type: 'ferris_wheel', emoji: EMOJIS.terrain.ferris_wheel };
+        map[MAP_HEIGHT - 4][MAP_WIDTH - 4] = { type: 'carousel', emoji: EMOJIS.terrain.carousel };
+        
+        // Flame pet
+        entities = [{
+            id: 'flame-pet',
+            type: 'wild_pet',
+            petType: 'flame',
+            x: MAP_WIDTH/2,
+            y: MAP_HEIGHT/2,
+            emoji: '🔥',
+            dialogue: 'Burn bright! The carnival never ends!'
+        }];
+        
+        placeItems(map, 'pizza', EMOJIS.collectibles.pizza, 10);
+        placeItems(map, 'taco', EMOJIS.collectibles.taco, 10);
+        placeItems(map, 'coin', EMOJIS.collectibles.coin, 20);
+        
+        map[1][MAP_WIDTH/2] = { type: 'portal', emoji: '🎪', target: { level: 'overworld', x: 5, y: 5 } };
+        
+    } else if (levelType === 'void') {
+        // The Void - mysterious emptiness
+        // Mostly empty with floating platforms
+        for (let i = 0; i < 15; i++) {
+            const x = Math.floor(Math.random() * MAP_WIDTH);
+            const y = Math.floor(Math.random() * MAP_HEIGHT);
+            const size = Math.floor(Math.random() * 3) + 1;
+            for (let dy = -size; dy <= size; dy++) {
+                for (let dx = -size; dx <= size; dx++) {
+                    if (Math.abs(dx) + Math.abs(dy) <= size) {
+                        const px = x + dx;
+                        const py = y + dy;
+                        if (px >= 0 && px < MAP_WIDTH && py >= 0 && py < MAP_HEIGHT) {
+                            map[py][px] = { type: 'vortex', emoji: EMOJIS.terrain.vortex };
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Skull pet - the void guardian
+        entities = [{
+            id: 'void-skull',
+            type: 'wild_pet',
+            petType: 'skull',
+            x: MAP_WIDTH/2,
+            y: MAP_HEIGHT/2,
+            emoji: '💀',
+            dialogue: 'In the void, all becomes nothing... Join me?'
+        }];
+        
+        // Rare items floating in void
+        placeItems(map, 'golden_egg', EMOJIS.collectibles.golden_egg, 3);
+        placeItems(map, 'hourglass', EMOJIS.collectibles.hourglass, 2);
+        placeItems(map, 'compass', EMOJIS.collectibles.compass, 2);
+        
+        map[MAP_HEIGHT/2][MAP_WIDTH/2] = { type: 'portal', emoji: '⚫', target: { level: 'overworld', x: 5, y: 5 } };
     }
     return { map, entities };
 }
@@ -846,39 +1302,52 @@ window.addEventListener('keydown', (e) => {
     const allEntities = [...party, ...entities];
     const targetEntity = allEntities.find(e => e.x === newX && e.y === newY && e.id !== player.id);
 
-    if (targetTile && (targetTile.type === 'stairDown' || targetTile.type === 'stairUp')) {
+    if (targetTile && (targetTile.type === 'stairDown' || targetTile.type === 'stairUp' || targetTile.type === 'door')) {
         playSound('levelChange');
-        changeLevel(targetTile.target.level, targetTile.target.x, targetTile.target.y);
+        if (targetTile.target) {
+            changeLevel(targetTile.target.level, targetTile.target.x, targetTile.target.y);
+        }
         return;
     }
     
-    if (targetTile && targetTile.type === 'portal') {
+    if (targetTile && (targetTile.type === 'portal' || targetTile.type === 'vortex' || targetTile.type === 'dreamGate')) {
         playSound('levelChange');
+        
+        // For vortex and dreamGate with targets
+        if (targetTile.target) {
+            changeLevel(targetTile.target.level, targetTile.target.x, targetTile.target.y);
+            return;
+        }
+        
         let targetLevel = null;
         let spawnX = 6, spawnY = 5;
         
-        if (targetTile.emoji === EMOJIS.portals.sf.emoji) {
-            targetLevel = 'sf';
-        } else if (targetTile.emoji === EMOJIS.portals.desert.emoji) {
-            targetLevel = 'desert';
-            spawnX = 3; spawnY = 3;
-        } else if (targetTile.emoji === EMOJIS.portals.island.emoji) {
-            targetLevel = 'island';
-            spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 4;
-        } else if (targetTile.emoji === EMOJIS.portals.city.emoji) {
-            targetLevel = 'city';
-            spawnX = 2; spawnY = 2;
-        } else if (targetTile.emoji === EMOJIS.portals.school.emoji) {
-            targetLevel = 'school';
-            spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3;
-        } else if (targetTile.emoji === EMOJIS.portals.boba.emoji) {
-            targetLevel = 'boba';
-            spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3;
-        } else if (targetTile.emoji === EMOJIS.portals.asia.emoji) {
-            playSound('denied');
-            updateNpcPFP(null, `${targetTile.name} - Coming Soon!`);
-            return;
-        }
+        // Check all portal types
+        Object.keys(EMOJIS.portals).forEach(portalKey => {
+            if (targetTile.emoji === EMOJIS.portals[portalKey].emoji || targetTile.name === EMOJIS.portals[portalKey].name) {
+                targetLevel = portalKey;
+                
+                // Set spawn positions for each level
+                switch(portalKey) {
+                    case 'desert': spawnX = 3; spawnY = 3; break;
+                    case 'island': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 4; break;
+                    case 'city': spawnX = 2; spawnY = 2; break;
+                    case 'school': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3; break;
+                    case 'boba': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3; break;
+                    case 'house1': case 'house2': case 'house3': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3; break;
+                    case 'mushroom_kingdom': spawnX = 3; spawnY = 3; break;
+                    case 'crystal_caves': spawnX = 3; spawnY = 3; break;
+                    case 'dreamscape': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT/2; break;
+                    case 'carnival': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT - 3; break;
+                    case 'void': spawnX = MAP_WIDTH/2; spawnY = MAP_HEIGHT/2; break;
+                    case 'asia':
+                        playSound('denied');
+                        updateNpcPFP(null, `${EMOJIS.portals[portalKey].name} - Coming Soon!`);
+                        targetLevel = null;
+                        break;
+                }
+            }
+        });
         
         if (targetLevel) {
             if (!levels[targetLevel]) {
@@ -898,6 +1367,17 @@ window.addEventListener('keydown', (e) => {
         if (inventory.legendaryWeapon) {
             damage = inventory.legendaryWeapon.damage;
         }
+        
+        // Apply pet bonuses
+        currentPets.forEach(pet => {
+            switch(pet.bonus) {
+                case 'fire': damage += 1; break;
+                case 'burn': damage += 0.5; break;
+                case 'magic': damage += inventory.diamonds > 0 ? 1 : 0; break;
+                case 'loyalty': damage += 0.5; break;
+                case 'undead': if (targetEntity.type === 'skeleton' || targetEntity.type === 'zombie') damage *= 2; break;
+            }
+        });
         
         // Apply legendary weapon special effects
         if (inventory.legendaryWeapon) {
@@ -1071,7 +1551,45 @@ window.addEventListener('keydown', (e) => {
                 inventory.secrets.push('scroll');
                 updateNpcPFP(null, '📜 Ancient wisdom reveals secret paths...');
             }
-            map[newY][newX] = null;
+            
+            // Special terrain interactions
+            if (targetTile.type === 'bloodPool') {
+                player.health = Math.max(1, player.health - 2);
+                updateNpcPFP(null, '🩸 The blood pool drains your life force! -2 HP');
+                // Has a chance to give vampire pet
+                if (Math.random() < 0.1 && currentPets.length < maxPets) {
+                    const vampPet = EMOJIS.pets.skull;
+                    currentPets.push(vampPet);
+                    showCombatMessage(`${vampPet.name} rises from the blood to join you!`);
+                }
+            }
+            if (targetTile.type === 'soulWell') {
+                // Soul wells teleport randomly
+                player.x = Math.floor(Math.random() * MAP_WIDTH);
+                player.y = Math.floor(Math.random() * MAP_HEIGHT);
+                updateNpcPFP(null, '🌀 The soul well teleports you!');
+                return;
+            }
+            if (targetTile.type === 'fountain') {
+                player.health = player.maxHealth;
+                updateNpcPFP(null, '⛲ The fountain fully restores your health!');
+            }
+            if (targetTile.type === 'gate' && targetTile.locked) {
+                if (inventory.keys > 0) {
+                    inventory.keys--;
+                    map[newY][newX] = null;
+                    updateNpcPFP(null, '🗝️ Unlocked the gate!');
+                } else {
+                    playSound('denied');
+                    updateNpcPFP(null, '🔒 This gate is locked! You need a key.');
+                    return;
+                }
+            }
+            
+            // Most collectibles clear the tile
+            if (!['bloodPool', 'soulWell', 'fountain', 'gate'].includes(targetTile.type)) {
+                map[newY][newX] = null;
+            }
             if (inventory.weapons.length === 5 && currentLevel === 'overworld') {
                 placeStairs();
             }
@@ -1132,8 +1650,10 @@ function moveEntities() {
 }
 
 // Cache solid terrain types for performance
-const SOLID_TERRAIN = new Set(['tree', 'mountain', 'wall', 'water', 'building', 'cactus', 'desk', 'book', 'board', 'lava', 'fire', 'chain', 'tombstone']);
-const DAMAGING_TERRAIN = new Set(['lava', 'fire']);
+const SOLID_TERRAIN = new Set(['tree', 'mountain', 'wall', 'water', 'building', 'cactus', 'desk', 'book', 'board', 'lava', 'fire', 'chain', 'tombstone', 'couch', 'tv', 'bed', 'stove', 'fridge', 'mirror', 'demonThrone', 'ferris_wheel', 'carousel']);
+const DAMAGING_TERRAIN = new Set(['lava', 'fire', 'bloodPool']);
+const HEALING_TERRAIN = new Set(['fountain', 'soulWell']);
+const TELEPORT_TERRAIN = new Set(['portal', 'vortex', 'dreamGate', 'stairUp', 'stairDown', 'door']);
 
 function isOccupied(map, entities, x, y, movingEntityId = null) {
     // Boundary check
@@ -1188,9 +1708,21 @@ function checkForNpcInteraction() {
                 foundAnimal = neighbor;
                 
                 // Special interactions
-                if (neighbor.givePet && !currentPet) {
-                    currentPet = EMOJIS.pets[neighbor.givePet];
-                    showCombatMessage(`${currentPet.name} joins your party! Bonus: ${currentPet.bonus}`);
+                if (neighbor.givePet && currentPets.length < maxPets) {
+                    const newPet = EMOJIS.pets[neighbor.givePet];
+                    currentPets.push(newPet);
+                    showCombatMessage(`${newPet.name} joins your party! Bonus: ${newPet.bonus}`);
+                }
+                
+                // Wild pet befriending
+                if (neighbor.type === 'wild_pet' && currentPets.length < maxPets) {
+                    const petData = EMOJIS.pets[neighbor.petType];
+                    if (petData && !currentPets.find(p => p.name === petData.name)) {
+                        currentPets.push(petData);
+                        showCombatMessage(`${petData.name} joins your party! Bonus: ${petData.bonus}`);
+                        // Remove the pet from entities
+                        levels[currentLevel].entities = entities.filter(e => e.id !== neighbor.id);
+                    }
                 }
                 break;
             }
@@ -1301,12 +1833,19 @@ function gameLoop() {
         ctx.fillText(p.emoji, p.x * TILE_SIZE + TILE_SIZE / 2, p.y * TILE_SIZE + TILE_SIZE / 2);
     });
     
-    // Draw pet following the player
-    if (currentPet) {
+    // Draw pets following the party
+    if (currentPets.length > 0) {
         const player = party.find(p => p.id === currentPlayerId);
-        ctx.globalAlpha = 0.8;
-        ctx.fillText(currentPet.emoji, (player.x - 0.3) * TILE_SIZE + TILE_SIZE / 2, (player.y - 0.3) * TILE_SIZE + TILE_SIZE / 2);
-        ctx.globalAlpha = 1;
+        currentPets.forEach((pet, index) => {
+            const angle = (index / maxPets) * Math.PI * 2;
+            const distance = 0.7;
+            const offsetX = Math.cos(angle) * distance;
+            const offsetY = Math.sin(angle) * distance;
+            
+            ctx.globalAlpha = 0.8;
+            ctx.fillText(pet.emoji, (player.x + offsetX) * TILE_SIZE + TILE_SIZE / 2, (player.y + offsetY) * TILE_SIZE + TILE_SIZE / 2);
+            ctx.globalAlpha = 1;
+        });
     }
     
     // Atmospheric effects
