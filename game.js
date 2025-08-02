@@ -1765,12 +1765,17 @@ charSelect.addEventListener('change', (e) => {
 // --- GAME LOOP ---
 function gameLoop() {
     try {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear and fill background
+        ctx.fillStyle = '#87CEEB';  // Sky blue background
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'black';  // Set default text color
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         // Safety check for current level
         if (!levels[currentLevel]) {
+            ctx.fillStyle = 'red';
             ctx.fillText('Level not found!', canvas.width / 2, canvas.height / 2);
             requestAnimationFrame(gameLoop);
             return;
@@ -1779,12 +1784,14 @@ function gameLoop() {
         const { map, entities } = levels[currentLevel];
         
         if (!map || !entities) {
+            ctx.fillStyle = 'red';
             ctx.fillText('Invalid level data!', canvas.width / 2, canvas.height / 2);
             requestAnimationFrame(gameLoop);
             return;
         }
 
         // Render map tiles
+        ctx.fillStyle = 'black';  // Ensure text is black for emojis
         for (let y = 0; y < MAP_HEIGHT; y++) {
             for (let x = 0; x < MAP_WIDTH; x++) {
                 const tile = map[y] && map[y][x];
@@ -1861,18 +1868,21 @@ function gameLoop() {
             const y = (Math.sin(Date.now() / 1000 + i) * 50) + 100 + i * 20;
             ctx.fillRect(x, y, 2, 2);
         }
+        ctx.fillStyle = 'black'; // Reset fillStyle
     }
     
     if (currentLevel === 'island' || timeOfDay === 'night') {
         // Night overlay
         ctx.fillStyle = 'rgba(0, 0, 30, 0.4)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black'; // Reset fillStyle
     }
     
     if (currentLevel === 'desert') {
         // Heat waves
         ctx.fillStyle = 'rgba(255, 200, 0, 0.1)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black'; // Reset fillStyle
     }
     
     // Draw combat message
